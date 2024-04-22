@@ -22,6 +22,44 @@
                 grid-column: 1 / 3;
                 grid-row: 5 / 6;
             }
+            .keyboard {
+                height: 100%;
+                max-width: 1000px;
+                align-items: center;
+                margin: auto;
+            }
+            .keyboard-row {
+                display: flex;
+                flex-wrap: nowrap;
+                height: 33%;
+                
+            }
+            .key {
+                flex: 1;
+                margin: 5px;
+                border: none;
+                border-radius: 5px;
+                background-color: #bbb;
+                /*max-width: 42px;*/
+                font-size: 3em;
+                font-weight: bold;
+                font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+            }
+            .key:hover {
+                background-color: #999;
+            }
+            .letter-key {
+                /*min-width: 30px;*/
+            }
+            .enter-key {
+                
+            }
+            .backspace-key {
+                
+            }
+            .key-spacer {
+                width: 30px;
+            }
         </style>
         <title>Bright Nebula Wordle Solver</title>
     </head>
@@ -29,7 +67,47 @@
         <div class="grid-container">
             <div class="grid-item-input" style="background-color: blue;"></div>
             <div class="grid-item-possible" style="background-color: green;"></div>
-            <div class="grid-item-keyboard" style="background-color: red;"></div>
+            <div class="grid-item-keyboard" style="background-color: white;">
+                <div class="keyboard">
+                    <div class="keyboard-row">
+                        <button class="key letter-key">Q</button>
+                        <button class="key letter-key">W</button>
+                        <button class="key letter-key">E</button>
+                        <button class="key letter-key">R</button>
+                        <button class="key letter-key">T</button>
+                        <button class="key letter-key">Y</button>
+                        <button class="key letter-key">U</button>
+                        <button class="key letter-key">I</button>
+                        <button class="key letter-key">O</button>
+                        <button class="key letter-key">P</button>
+                    </div>
+                    <div class="keyboard-row">
+                        <span class="key-spacer"></span>
+                        <button class="key letter-key">A</button>
+                        <button class="key letter-key">S</button>
+                        <button class="key letter-key">D</button>
+                        <button class="key letter-key">F</button>
+                        <button class="key letter-key">G</button>
+                        <button class="key letter-key">H</button>
+                        <button class="key letter-key">J</button>
+                        <button class="key letter-key">K</button>
+                        <button class="key letter-key">L</button>
+                        <span class="key-spacer"></span>
+                    </div>
+                    <div class="keyboard-row">
+                        <button class="key enter-key">ENTER</button>
+                        <button class="key letter-key">Z</button>
+                        <button class="key letter-key">X</button>
+                        <button class="key letter-key">C</button>
+                        <button class="key letter-key">V</button>
+                        <button class="key letter-key">B</button>
+                        <button class="key letter-key">N</button>
+                        <button class="key letter-key">M</button>
+                        <button class="key backspace-key">⌫</button>
+                    </div>
+                </div>
+                
+            </div>
         </div>
     </body>
 </html>
