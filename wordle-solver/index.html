@@ -3,6 +3,7 @@
         <style>
             body {
                 margin: 0px;
+                box-sizing: border-box;
             }
             .grid-container {
                 display: grid;
@@ -60,12 +61,147 @@
             .key-spacer {
                 width: 30px;
             }
+            .board-container {
+                display: grid;
+                grid-template-rows: auto auto auto auto auto auto;
+                grid-template-columns: auto;
+                row-gap: 3px;
+                height: 95%;
+                width: 95%;
+                margin: auto;
+                padding-top: 2.5%;
+            }
+            .board-row {
+                display: grid;
+                grid-template-rows: auto;
+                grid-template-columns: auto auto auto auto auto;
+                grid-row-end: span 1;
+                column-gap: 3px;
+            }
+            .board-letter {
+                grid-column-end: span 1;
+                border: 3px solid black;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            .board-letter-text {
+                position: absolute;
+                font-size: 5vw;
+                font-weight: bold;
+                font-family: 'Times New Roman', Times, serif;
+            }
         </style>
         <title>Bright Nebula Wordle Solver</title>
     </head>
     <body>
         <div class="grid-container">
-            <div class="grid-item-input" style="background-color: blue;"></div>
+            <div class="grid-item-input" style="background-color: white;">
+                <div class="board-container">
+                    <div class="board-row">
+                        <div class="board-letter">
+                            <div class="board-letter-text">A</div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text">B</div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text">C</div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text">D</div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text">E</div>
+                        </div>
+                    </div>
+                    <div class="board-row">
+                        <div class="board-letter">
+                            <div class="board-letter-text">A</div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text">B</div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text">C</div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text">D</div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text">E</div>
+                        </div>
+                    </div>
+                    <div class="board-row">
+                        <div class="board-letter">
+                            <div class="board-letter-text">A</div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text">B</div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text">C</div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text">D</div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text">E</div>
+                        </div>
+                    </div>
+                    <div class="board-row">
+                        <div class="board-letter">
+                            <div class="board-letter-text">A</div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text">B</div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text">C</div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text">D</div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text">E</div>
+                        </div>
+                    </div>
+                    <div class="board-row">
+                        <div class="board-letter">
+                            <div class="board-letter-text">A</div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text">B</div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text">C</div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text">D</div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text">E</div>
+                        </div>
+                    </div>
+                    <div class="board-row">
+                        <div class="board-letter">
+                            <div class="board-letter-text">A</div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text">B</div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text">C</div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text">D</div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text">E</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="grid-item-possible" style="background-color: green;"></div>
             <div class="grid-item-keyboard" style="background-color: white;">
                 <div class="keyboard">
