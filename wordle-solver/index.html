@@ -92,6 +92,22 @@
                 font-family: 'Times New Roman', Times, serif;
             }
         </style>
+        <script>
+            function onscreenKeyClicked() {
+                console.log(this.innerText);
+            }
+
+            window.onload = function() {
+                let keysForOnscreenKeyboard = document.getElementsByClassName('key');
+                for (currentKey of keysForOnscreenKeyboard) {
+                    currentKey.addEventListener("click", onscreenKeyClicked);
+                }
+            }
+
+            document.onkeydown = function(e) {
+                console.log(e);
+            }
+        </script>
         <title>Bright Nebula Wordle Solver</title>
     </head>
     <body>
