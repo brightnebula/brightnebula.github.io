@@ -94,7 +94,14 @@
         </style>
         <script>
             function onscreenKeyClicked() {
-                console.log(this.innerText);
+                //console.log(this.innerText);
+                if (this.innerText === '⌫') {
+                    updateEnteredWord('Backspace');
+                } else if (this.innerText === 'ENTER') {
+                    updateEnteredWord('Enter');
+                } else {
+                    updateEnteredWord(this.innerText);
+                }
             }
 
             window.onload = function() {
@@ -105,7 +112,38 @@
             }
 
             document.onkeydown = function(e) {
-                console.log(e);
+                //console.log(e);
+                if (e.key === 'Backspace' || e.key === 'Enter') {
+                    updateEnteredWord(e.key);
+                } else if (e.code.startsWith('Key')) {
+                    updateEnteredWord(e.code.substring(3));
+                }
+            }
+
+            let enteredWords = [];
+            enteredWords.push([]);
+            function updateEnteredWord(key) {
+                if (key === 'Backspace') {
+                    enteredWords[enteredWords.length-1].pop();
+                } else if (key === 'Enter') {
+                    if (enteredWords[enteredWords.length-1].length === 5) {
+                        //TODO: Ensure valid word is entered
+                        enteredWords.push([]);
+                    }
+                } else {
+                    if (enteredWords[enteredWords.length-1].length < 5)
+                        enteredWords[enteredWords.length-1].push(key);
+                }
+
+                console.log(enteredWords);
+
+                let boardContainer = document.getElementsByClassName("board-container")[0];
+                for (let i = 0; i < enteredWords.length; i++) {
+                    for (let j = 0; j < 5; j++) {
+                        let displayLetter = enteredWords[i][j] !== undefined ? enteredWords[i][j] : "";
+                        boardContainer.children[i].children[j].children[0].innerHTML=displayLetter;
+                    }
+                }
             }
         </script>
         <title>Bright Nebula Wordle Solver</title>
@@ -116,104 +154,104 @@
                 <div class="board-container">
                     <div class="board-row">
                         <div class="board-letter">
-                            <div class="board-letter-text">A</div>
+                            <div class="board-letter-text"></div>
                         </div>
                         <div class="board-letter">
-                            <div class="board-letter-text">B</div>
+                            <div class="board-letter-text"></div>
                         </div>
                         <div class="board-letter">
-                            <div class="board-letter-text">C</div>
+                            <div class="board-letter-text"></div>
                         </div>
                         <div class="board-letter">
-                            <div class="board-letter-text">D</div>
+                            <div class="board-letter-text"></div>
                         </div>
                         <div class="board-letter">
-                            <div class="board-letter-text">E</div>
-                        </div>
-                    </div>
-                    <div class="board-row">
-                        <div class="board-letter">
-                            <div class="board-letter-text">A</div>
-                        </div>
-                        <div class="board-letter">
-                            <div class="board-letter-text">B</div>
-                        </div>
-                        <div class="board-letter">
-                            <div class="board-letter-text">C</div>
-                        </div>
-                        <div class="board-letter">
-                            <div class="board-letter-text">D</div>
-                        </div>
-                        <div class="board-letter">
-                            <div class="board-letter-text">E</div>
+                            <div class="board-letter-text"></div>
                         </div>
                     </div>
                     <div class="board-row">
                         <div class="board-letter">
-                            <div class="board-letter-text">A</div>
+                            <div class="board-letter-text"></div>
                         </div>
                         <div class="board-letter">
-                            <div class="board-letter-text">B</div>
+                            <div class="board-letter-text"></div>
                         </div>
                         <div class="board-letter">
-                            <div class="board-letter-text">C</div>
+                            <div class="board-letter-text"></div>
                         </div>
                         <div class="board-letter">
-                            <div class="board-letter-text">D</div>
+                            <div class="board-letter-text"></div>
                         </div>
                         <div class="board-letter">
-                            <div class="board-letter-text">E</div>
-                        </div>
-                    </div>
-                    <div class="board-row">
-                        <div class="board-letter">
-                            <div class="board-letter-text">A</div>
-                        </div>
-                        <div class="board-letter">
-                            <div class="board-letter-text">B</div>
-                        </div>
-                        <div class="board-letter">
-                            <div class="board-letter-text">C</div>
-                        </div>
-                        <div class="board-letter">
-                            <div class="board-letter-text">D</div>
-                        </div>
-                        <div class="board-letter">
-                            <div class="board-letter-text">E</div>
+                            <div class="board-letter-text"></div>
                         </div>
                     </div>
                     <div class="board-row">
                         <div class="board-letter">
-                            <div class="board-letter-text">A</div>
+                            <div class="board-letter-text"></div>
                         </div>
                         <div class="board-letter">
-                            <div class="board-letter-text">B</div>
+                            <div class="board-letter-text"></div>
                         </div>
                         <div class="board-letter">
-                            <div class="board-letter-text">C</div>
+                            <div class="board-letter-text"></div>
                         </div>
                         <div class="board-letter">
-                            <div class="board-letter-text">D</div>
+                            <div class="board-letter-text"></div>
                         </div>
                         <div class="board-letter">
-                            <div class="board-letter-text">E</div>
+                            <div class="board-letter-text"></div>
                         </div>
                     </div>
                     <div class="board-row">
                         <div class="board-letter">
-                            <div class="board-letter-text">A</div>
+                            <div class="board-letter-text"></div>
                         </div>
                         <div class="board-letter">
-                            <div class="board-letter-text">B</div>
+                            <div class="board-letter-text"></div>
                         </div>
                         <div class="board-letter">
-                            <div class="board-letter-text">C</div>
+                            <div class="board-letter-text"></div>
                         </div>
                         <div class="board-letter">
-                            <div class="board-letter-text">D</div>
+                            <div class="board-letter-text"></div>
                         </div>
                         <div class="board-letter">
-                            <div class="board-letter-text">E</div>
+                            <div class="board-letter-text"></div>
+                        </div>
+                    </div>
+                    <div class="board-row">
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                    </div>
+                    <div class="board-row">
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
                         </div>
                     </div>
                 </div>
