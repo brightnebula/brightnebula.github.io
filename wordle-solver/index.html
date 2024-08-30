@@ -104,10 +104,54 @@
                 }
             }
 
+            let knowledgeArray = [];
+            let COLORS = {'': {color: '', next: 'gray'}, 
+                            'gray': {color: 'gray', next: 'yellow'},
+                            'yellow': {color: 'yellow', next: 'green'},
+                            'green': {color: 'green', next: ''} };
+            function boardLetterClicked(event) {
+                let rowIndex = Array.from(event.target.parentNode.parentNode.children).indexOf(event.target.parentNode);
+                let letterIndex = Array.from(event.target.parentNode.children).indexOf(event.target);
+                let color = event.target.style.backgroundColor;
+                console.log("(" + rowIndex + ", " + letterIndex + ") " + color);
+
+                if (enteredWords.length > rowIndex+1 && enteredWords[rowIndex].length === 5) {
+                    event.target.style.backgroundColor = COLORS[color].next;
+                }
+
+                let boardContainer = document.getElementsByClassName("board-container")[0];
+                knowledgeArray = [];
+                for (let row = 0; row < enteredWords.length-1; row++) { //the last item in the array has not been finalized by the user
+                    let enteredWord = enteredWords[row];
+                    let boardRow = boardContainer.children[row];
+                    let knowledgeWord = [];
+                    for (let col = 0; col < boardRow.children.length; col++) {
+                        let knowledgePiece = {letter: enteredWord[col]};
+                        let boardLetter = boardRow.children[col];
+                        knowledgePiece.color = boardLetter.style.backgroundColor;
+                        if (knowledgePiece.color !== '') {
+                            knowledgeWord.push(knowledgePiece);
+                        } else {
+                            break;
+                        }
+                    }
+                    if (knowledgeWord.length === 5) {
+                        knowledgeArray.push(knowledgeWord);
+                    }
+                }
+                console.log(knowledgeArray);
+            }
+
             window.onload = function() {
                 let keysForOnscreenKeyboard = document.getElementsByClassName('key');
-                for (currentKey of keysForOnscreenKeyboard) {
+                for (let currentKey of keysForOnscreenKeyboard) {
                     currentKey.addEventListener("click", onscreenKeyClicked);
+                }
+                let boardContainer = document.getElementsByClassName("board-container")[0];
+                for (let boardRow of boardContainer.children) {
+                    for (let boardLetter of boardRow.children) {
+                        boardLetter.addEventListener("click", boardLetterClicked);
+                    }
                 }
             }
 
