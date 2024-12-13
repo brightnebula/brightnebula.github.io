@@ -7,8 +7,8 @@
             }
             .grid-container {
                 display: grid;
-                grid-template-rows: auto auto auto auto auto;
-                grid-template-columns: auto auto;
+                grid-template-rows: 18% 18% 18% 18% 28%;
+                grid-template-columns: 50% 50%;
                 height: 100%;
             }
             .grid-item-input {
@@ -18,6 +18,8 @@
             .grid-item-possible {
                 grid-column: 2 / 3;
                 grid-row: 1 / 5;
+                width: 100%;
+                overflow: auto;
             }
             .grid-item-keyboard {
                 grid-column: 1 / 3;
@@ -45,6 +47,7 @@
                 font-size: 3em;
                 font-weight: bold;
                 font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+                user-select: none;
             }
             .key:hover {
                 background-color: #999;
@@ -70,6 +73,7 @@
                 width: 95%;
                 margin: auto;
                 padding-top: 2.5%;
+                user-select: none;
             }
             .board-row {
                 display: grid;
@@ -92,9 +96,9 @@
                 font-family: 'Times New Roman', Times, serif;
             }
         </style>
+        <script src="js/frontend/legalWordList.js"></script>
         <script>
             function onscreenKeyClicked() {
-                //console.log(this.innerText);
                 if (this.innerText === '⌫') {
                     updateEnteredWord('Backspace');
                 } else if (this.innerText === 'ENTER') {
@@ -106,19 +110,28 @@
 
             let knowledgeArray = [];
             let COLORS = {'': {color: '', next: 'gray'}, 
-                            'gray': {color: 'gray', next: 'yellow'},
-                            'yellow': {color: 'yellow', next: 'green'},
-                            'green': {color: 'green', next: ''} };
+                            'gray': {color: 'gray', next: 'yellow', outcome: 'b'},
+                            'yellow': {color: 'yellow', next: 'green', outcome: 'y'},
+                            'green': {color: 'green', next: 'gray', outcome: 'g' }};
             function boardLetterClicked(event) {
-                let rowIndex = Array.from(event.target.parentNode.parentNode.children).indexOf(event.target.parentNode);
-                let letterIndex = Array.from(event.target.parentNode.children).indexOf(event.target);
-                let color = event.target.style.backgroundColor;
+                let boardLetter = event.target;
+                if (boardLetter.className === "board-letter-text") {
+                    boardLetter = boardLetter.parentElement;
+                }
+
+                let rowIndex = Array.from(boardLetter.parentNode.parentNode.children).indexOf(boardLetter.parentNode);
+                let letterIndex = Array.from(boardLetter.parentNode.children).indexOf(boardLetter);
+                let color = boardLetter.style.backgroundColor;
                 console.log("(" + rowIndex + ", " + letterIndex + ") " + color);
 
                 if (enteredWords.length > rowIndex+1 && enteredWords[rowIndex].length === 5) {
-                    event.target.style.backgroundColor = COLORS[color].next;
+                    boardLetter.style.backgroundColor = COLORS[color].next;
                 }
 
+                updateKnowledgeArray();
+            }
+
+            function updateKnowledgeArray() {
                 let boardContainer = document.getElementsByClassName("board-container")[0];
                 knowledgeArray = [];
                 for (let row = 0; row < enteredWords.length-1; row++) { //the last item in the array has not been finalized by the user
@@ -137,6 +150,13 @@
                     }
                     if (knowledgeWord.length === 5) {
                         knowledgeArray.push(knowledgeWord);
+                        let word = "";
+                        let outcome = "";
+                        for (let knowledge of knowledgeWord) {
+                            word += knowledge.letter.toLowerCase();
+                            outcome += COLORS[knowledge.color].outcome;
+                        }
+                        requestResult(word, outcome);
                     }
                 }
                 console.log(knowledgeArray);
@@ -156,7 +176,9 @@
             }
 
             document.onkeydown = function(e) {
-                //console.log(e);
+                if (e.ctrlKey || e.metaKey || e.altKey) {
+                    return;
+                }
                 if (e.key === 'Backspace' || e.key === 'Enter') {
                     updateEnteredWord(e.key);
                 } else if (e.code.startsWith('Key')) {
@@ -167,12 +189,20 @@
             let enteredWords = [];
             enteredWords.push([]);
             function updateEnteredWord(key) {
+                let newWordEntered = false;
                 if (key === 'Backspace') {
                     enteredWords[enteredWords.length-1].pop();
                 } else if (key === 'Enter') {
                     if (enteredWords[enteredWords.length-1].length === 5) {
-                        //TODO: Ensure valid word is entered
-                        enteredWords.push([]);
+                        //Ensure valid word is entered
+                        let combinedWord = '';
+                        for (let letter of enteredWords[enteredWords.length-1]){
+                            combinedWord += letter.toLowerCase();
+                        }
+                        if (legalWordList.includes(combinedWord)) {
+                            enteredWords.push([]);
+                            newWordEntered = true;
+                        }
                     }
                 } else {
                     if (enteredWords[enteredWords.length-1].length < 5)
@@ -188,6 +218,220 @@
                         boardContainer.children[i].children[j].children[0].innerHTML=displayLetter;
                     }
                 }
+
+                if (newWordEntered) {
+                    handleWordEntered();
+                }
+            }
+
+            function handleWordEntered() {
+                let boardContainer = document.getElementsByClassName("board-container")[0];
+                let wordRowIndex = enteredWords.length - 2;
+
+                for (let j = 0; j < 5; j++) {
+                    let color = boardContainer.children[wordRowIndex].children[j].style.color;
+                    if (color === '') {
+                        boardContainer.children[wordRowIndex].children[j].style.backgroundColor = COLORS[''].next;
+                    }
+                }
+
+                updateKnowledgeArray();
+
+                let word = "";
+                let wordArray = enteredWords[enteredWords.length-2];
+                for (let letter of wordArray) {
+                    word += letter;
+                }
+                requestResult(word.toLowerCase(), "bbbbb");
+            }
+        </script>
+        <script>
+            let requestQueue = [];            
+            let resultsMap = {};
+            function requestResult(word, outcome) {
+                requestQueue.push({word: word, outcome: outcome});
+                processRequests();
+                updatePossibleWordList();
+            }
+
+            async function processRequests() {
+                while (requestQueue.length > 0) {
+                    let request = requestQueue.shift();
+                    if (typeof request !== 'undefined') {
+                        if (typeof resultsMap[request.word] === 'undefined') {
+                            resultsMap[request.word] = {};
+                        }
+                        if (typeof resultsMap[request.word][request.outcome] === 'undefined') {
+                            resultsMap[request.word][request.outcome] = await determinePossibleAnswersForWordAndOutcome(request.word, request.outcome);
+                            updatePossibleWordList();
+                        }
+                    }
+                }
+            }
+
+            async function determinePossibleAnswersForWordAndOutcome(word, outcome) {
+                let validWords = []; //for debugging
+                
+                let conditions = {};
+                let nextMax = 5;
+                for (let i = 0; i < outcome.length; i++) {
+                    if (outcome[i] === 'g' || outcome[i] === 'y') {
+                    if (Object.hasOwn(conditions, word[i])) {
+                        conditions[word[i]].min++;
+                    } else {
+                        conditions[word[i]] = {};
+                        conditions[word[i]].min = 1;
+                        conditions[word[i]].max = nextMax;
+                    }
+                    nextMax--;
+                    for (let letterIndex in conditions) {
+                        if (letterIndex !== word[i]) {
+                        conditions[letterIndex].max--;
+                        }
+                    }
+                    }
+                }
+                for (let i = 0; i < outcome.length; i++) {
+                    if (outcome[i] === 'b') {
+                    if (Object.hasOwn(conditions, word[i])) {
+                        if (conditions[word[i]].max > conditions[word[i]].min)
+                        conditions[word[i]].max = conditions[word[i]].min;
+                    } else {
+                        conditions[word[i]] = {};
+                        conditions[word[i]].min = 0;
+                        conditions[word[i]].max = 0;
+                    }
+                    }
+                }
+
+                const ONE = BigInt(1);
+                const TWO = BigInt(2);
+
+                let nextPlaceValue = ONE;
+                let binaryAnswers = BigInt(0);
+                for (let legalWord of legalWordList) {
+                    let valid = true;
+                    let letterCounts = {};
+                    for (let i = 0; i < word.length; i++) {
+                    if (outcome[i] === 'g') { //Verify "g" letters in correct place
+                        if (word[i] !== legalWord[i]) {
+                        valid = false;
+                        break;
+                        }
+                    } else if (outcome[i] === 'y') { //Verify "y" letters in word, not at place
+                        if (word[i] === legalWord[i]) {
+                        valid = false;
+                        break;
+                        }
+                    } else if (outcome[i] === 'b') { //Verify "b" letters not at place
+                        if (word[i] === legalWord[i]) {
+                        valid = false;
+                        break;
+                        }
+                    }
+                    if (Object.hasOwn(letterCounts, legalWord[i])) {
+                        letterCounts[legalWord[i]]++;
+                    } else {
+                        letterCounts[legalWord[i]] = 1;
+                    }
+                    }
+
+                    if (valid) {
+                        for (let letterIndex in conditions) {
+                            if (typeof letterCounts[letterIndex] === 'undefined') {
+                                letterCounts[letterIndex] = 0;
+                            }
+                            if (letterCounts[letterIndex] < conditions[letterIndex].min || letterCounts[letterIndex] > conditions[letterIndex].max) {
+                                valid = false;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (valid) {
+                        binaryAnswers += nextPlaceValue;
+                        validWords.push(legalWord);
+                    }
+                    nextPlaceValue *= TWO;
+                }
+
+                return binaryAnswers;
+            }
+
+            async function bigIntToBase64(bigint) {
+                let hex = bigint.toString(16); // Convert to hex string
+                if (hex.length % 2 == 1)
+                    hex = "0" + hex;
+                const buffer = Buffer.from(hex, 'hex'); // Create a Buffer from hex
+                return buffer.toString('base64'); // Encode the buffer to base64
+            }
+
+            async function base64ToBigInt(base64) {
+                const buffer = Buffer.from(base64, 'base64');
+                let hex = buffer.toString('hex');
+                return BigInt('0x' + hex);
+            }
+
+            async function getWordsForBase64(base64) {
+                let binaryIndecies = BigInt(await base64ToBigInt(base64));
+                return await getWordsForBinary(binaryIndecies);
+            }
+
+            async function getWordsForBinary(binaryIndecies) {
+                const ZERO = BigInt(0);
+                const ONE = BigInt(1);
+                const TWO = BigInt(2);
+
+                let nextPlaceValue = ONE;
+
+                let wordsToReturn = [];
+                let index = 0;
+                while (nextPlaceValue <= binaryIndecies) {
+                    let andResult = nextPlaceValue & binaryIndecies;
+                    if (andResult > ZERO) {
+                    wordsToReturn.push(legalWordList[index]);
+                    }
+                    index++;
+                    nextPlaceValue *= TWO;
+                }
+
+                return wordsToReturn;
+            }
+        </script>
+        <script>
+            async function updatePossibleWordList() {
+                console.log("here!");
+                let result = undefined;
+                for (let knowledgeWord of knowledgeArray) {
+                    let word = "";
+                    let outcome = "";
+                    for (let knowledge of knowledgeWord) {
+                        word += knowledge.letter.toLowerCase();
+                        outcome += COLORS[knowledge.color].outcome;
+                    }
+                    result = await getNextResult(word, outcome, result);
+                }
+                let possibleWordList = await getWordsForBinary(result);
+                console.log(possibleWordList);
+                
+                let header = document.getElementsByClassName("possible-header")[0];
+                header.innerHTML = "Possible Words (" + possibleWordList.length + ")";
+
+                let list = document.getElementsByClassName("possible-list")[0];
+                list.innerHTML = "";
+                for (let word of possibleWordList) {
+                    let li = document.createElement("li");
+                    li.appendChild(document.createTextNode(word));
+                    list.appendChild(li);
+                }
+            }
+
+            async function getNextResult(word, outcome, priorResult) {
+                let result = resultsMap[word][outcome];
+                if (typeof priorResult !== 'undefined') {
+                    result &= priorResult;
+                }
+                return result;
             }
         </script>
         <title>Bright Nebula Wordle Solver</title>
@@ -300,7 +544,12 @@
                     </div>
                 </div>
             </div>
-            <div class="grid-item-possible" style="background-color: green;"></div>
+            <div class="grid-item-possible" style="background-color: white;">
+                <h1 class="possible-header"></h1>
+                <ul class="possible-list">
+                    
+                </ul>
+            </div>
             <div class="grid-item-keyboard" style="background-color: white;">
                 <div class="keyboard">
                     <div class="keyboard-row">

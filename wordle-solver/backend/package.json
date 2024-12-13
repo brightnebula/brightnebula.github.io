@@ -8,5 +8,5 @@
   },
   "author": "",
   "license": "UNLICENSED",
-  "type": "module"
+  "type": "commonjs"
 }
