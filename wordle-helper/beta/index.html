@@ -1,0 +1,597 @@
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+        <style>
+            body {
+                margin: 0px;
+                box-sizing: border-box;
+            }
+            .grid-container {
+                display: grid;
+                grid-template-rows: 18% 18% 18% 18% 28%;
+                grid-template-columns: 50% 50%;
+                height: 100%;
+            }
+            .grid-item-input {
+                grid-column: 1 / 2;
+                grid-row: 1 / 5;
+            }
+            .grid-item-possible {
+                grid-column: 2 / 3;
+                grid-row: 1 / 5;
+                width: 100%;
+                overflow: auto;
+            }
+            .grid-item-keyboard {
+                grid-column: 1 / 3;
+                grid-row: 5 / 6;
+            }
+            .keyboard {
+                height: 100%;
+                max-width: 1000px;
+                align-items: center;
+                margin: auto;
+            }
+            .keyboard-row {
+                display: flex;
+                flex-wrap: nowrap;
+                height: 33%;
+                
+            }
+            .key {
+                flex: 1;
+                margin: 5px;
+                border: none;
+                border-radius: 5px;
+                background-color: #bbb;
+                /*max-width: 42px;*/
+                font-size: 3em;
+                font-weight: bold;
+                font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+                user-select: none;
+            }
+            .key:hover {
+                background-color: #999;
+            }
+            .letter-key {
+                /*min-width: 30px;*/
+            }
+            .enter-key {
+                
+            }
+            .backspace-key {
+                
+            }
+            .key-spacer {
+                width: 30px;
+            }
+            .board-container {
+                display: grid;
+                grid-template-rows: auto auto auto auto auto auto;
+                grid-template-columns: auto;
+                row-gap: 3px;
+                height: 95%;
+                width: 95%;
+                margin: auto;
+                padding-top: 2.5%;
+                user-select: none;
+            }
+            .board-row {
+                display: grid;
+                grid-template-rows: auto;
+                grid-template-columns: auto auto auto auto auto;
+                grid-row-end: span 1;
+                column-gap: 3px;
+            }
+            .board-letter {
+                grid-column-end: span 1;
+                border: 3px solid black;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            .board-letter-text {
+                position: absolute;
+                font-size: 5vw;
+                font-weight: bold;
+                font-family: 'Times New Roman', Times, serif;
+            }
+        </style>
+        <script src="js/frontend/legalWordList.js"></script>
+        <script>
+            function onscreenKeyClicked() {
+                if (this.innerText === '⌫') {
+                    updateEnteredWord('Backspace');
+                } else if (this.innerText === 'ENTER') {
+                    updateEnteredWord('Enter');
+                } else {
+                    updateEnteredWord(this.innerText);
+                }
+            }
+
+            let knowledgeArray = [];
+            let COLORS = {'': {color: '', next: 'gray'}, 
+                            'gray': {color: 'gray', next: 'yellow', outcome: 'b'},
+                            'yellow': {color: 'yellow', next: 'green', outcome: 'y'},
+                            'green': {color: 'green', next: 'gray', outcome: 'g' }};
+            function boardLetterClicked(event) {
+                let boardLetter = event.target;
+                if (boardLetter.className === "board-letter-text") {
+                    boardLetter = boardLetter.parentElement;
+                }
+
+                let rowIndex = Array.from(boardLetter.parentNode.parentNode.children).indexOf(boardLetter.parentNode);
+                let letterIndex = Array.from(boardLetter.parentNode.children).indexOf(boardLetter);
+                let color = boardLetter.style.backgroundColor;
+                console.log("(" + rowIndex + ", " + letterIndex + ") " + color);
+
+                if (enteredWords.length > rowIndex+1 && enteredWords[rowIndex].length === 5) {
+                    boardLetter.style.backgroundColor = COLORS[color].next;
+                }
+
+                updateKnowledgeArray();
+            }
+
+            function updateKnowledgeArray() {
+                let boardContainer = document.getElementsByClassName("board-container")[0];
+                knowledgeArray = [];
+                for (let row = 0; row < enteredWords.length-1; row++) { //the last item in the array has not been finalized by the user
+                    let enteredWord = enteredWords[row];
+                    let boardRow = boardContainer.children[row];
+                    let knowledgeWord = [];
+                    for (let col = 0; col < boardRow.children.length; col++) {
+                        let knowledgePiece = {letter: enteredWord[col]};
+                        let boardLetter = boardRow.children[col];
+                        knowledgePiece.color = boardLetter.style.backgroundColor;
+                        if (knowledgePiece.color !== '') {
+                            knowledgeWord.push(knowledgePiece);
+                        } else {
+                            break;
+                        }
+                    }
+                    if (knowledgeWord.length === 5) {
+                        knowledgeArray.push(knowledgeWord);
+                        let word = "";
+                        let outcome = "";
+                        for (let knowledge of knowledgeWord) {
+                            word += knowledge.letter.toLowerCase();
+                            outcome += COLORS[knowledge.color].outcome;
+                        }
+                        requestResult(word, outcome);
+                    }
+                }
+                console.log(knowledgeArray);
+            }
+
+            window.onload = function() {
+                let keysForOnscreenKeyboard = document.getElementsByClassName('key');
+                for (let currentKey of keysForOnscreenKeyboard) {
+                    currentKey.addEventListener("click", onscreenKeyClicked);
+                }
+                let boardContainer = document.getElementsByClassName("board-container")[0];
+                for (let boardRow of boardContainer.children) {
+                    for (let boardLetter of boardRow.children) {
+                        boardLetter.addEventListener("click", boardLetterClicked);
+                    }
+                }
+            }
+
+            document.onkeydown = function(e) {
+                if (e.ctrlKey || e.metaKey || e.altKey) {
+                    return;
+                }
+                if (e.key === 'Backspace' || e.key === 'Enter') {
+                    updateEnteredWord(e.key);
+                } else if (e.code.startsWith('Key')) {
+                    updateEnteredWord(e.code.substring(3));
+                }
+            }
+
+            let enteredWords = [];
+            enteredWords.push([]);
+            function updateEnteredWord(key) {
+                let newWordEntered = false;
+                if (key === 'Backspace') {
+                    enteredWords[enteredWords.length-1].pop();
+                } else if (key === 'Enter') {
+                    if (enteredWords[enteredWords.length-1].length === 5) {
+                        //Ensure valid word is entered
+                        let combinedWord = '';
+                        for (let letter of enteredWords[enteredWords.length-1]){
+                            combinedWord += letter.toLowerCase();
+                        }
+                        if (legalWordList.includes(combinedWord)) {
+                            enteredWords.push([]);
+                            newWordEntered = true;
+                        }
+                    }
+                } else {
+                    if (enteredWords[enteredWords.length-1].length < 5)
+                        enteredWords[enteredWords.length-1].push(key);
+                }
+
+                console.log(enteredWords);
+
+                let boardContainer = document.getElementsByClassName("board-container")[0];
+                for (let i = 0; i < enteredWords.length; i++) {
+                    for (let j = 0; j < 5; j++) {
+                        let displayLetter = enteredWords[i][j] !== undefined ? enteredWords[i][j] : "";
+                        boardContainer.children[i].children[j].children[0].innerHTML=displayLetter;
+                    }
+                }
+
+                if (newWordEntered) {
+                    handleWordEntered();
+                }
+            }
+
+            function handleWordEntered() {
+                let boardContainer = document.getElementsByClassName("board-container")[0];
+                let wordRowIndex = enteredWords.length - 2;
+
+                for (let j = 0; j < 5; j++) {
+                    let color = boardContainer.children[wordRowIndex].children[j].style.color;
+                    if (color === '') {
+                        boardContainer.children[wordRowIndex].children[j].style.backgroundColor = COLORS[''].next;
+                    }
+                }
+
+                updateKnowledgeArray();
+
+                let word = "";
+                let wordArray = enteredWords[enteredWords.length-2];
+                for (let letter of wordArray) {
+                    word += letter;
+                }
+                requestResult(word.toLowerCase(), "bbbbb");
+            }
+        </script>
+        <script>
+            let requestQueue = [];            
+            let resultsMap = {};
+            function requestResult(word, outcome) {
+                requestQueue.push({word: word, outcome: outcome});
+                processRequests();
+                updatePossibleWordList();
+            }
+
+            async function processRequests() {
+                while (requestQueue.length > 0) {
+                    let request = requestQueue.shift();
+                    if (typeof request !== 'undefined') {
+                        if (typeof resultsMap[request.word] === 'undefined') {
+                            resultsMap[request.word] = {};
+                        }
+                        if (typeof resultsMap[request.word][request.outcome] === 'undefined') {
+                            resultsMap[request.word][request.outcome] = await determinePossibleAnswersForWordAndOutcome(request.word, request.outcome);
+                            updatePossibleWordList();
+                        }
+                    }
+                }
+            }
+
+            async function determinePossibleAnswersForWordAndOutcome(word, outcome) {
+                let validWords = []; //for debugging
+                
+                let conditions = {};
+                let nextMax = 5;
+                for (let i = 0; i < outcome.length; i++) {
+                    if (outcome[i] === 'g' || outcome[i] === 'y') {
+                    if (Object.hasOwn(conditions, word[i])) {
+                        conditions[word[i]].min++;
+                    } else {
+                        conditions[word[i]] = {};
+                        conditions[word[i]].min = 1;
+                        conditions[word[i]].max = nextMax;
+                    }
+                    nextMax--;
+                    for (let letterIndex in conditions) {
+                        if (letterIndex !== word[i]) {
+                        conditions[letterIndex].max--;
+                        }
+                    }
+                    }
+                }
+                for (let i = 0; i < outcome.length; i++) {
+                    if (outcome[i] === 'b') {
+                    if (Object.hasOwn(conditions, word[i])) {
+                        if (conditions[word[i]].max > conditions[word[i]].min)
+                        conditions[word[i]].max = conditions[word[i]].min;
+                    } else {
+                        conditions[word[i]] = {};
+                        conditions[word[i]].min = 0;
+                        conditions[word[i]].max = 0;
+                    }
+                    }
+                }
+
+                const ONE = BigInt(1);
+                const TWO = BigInt(2);
+
+                let nextPlaceValue = ONE;
+                let binaryAnswers = BigInt(0);
+                for (let legalWord of legalWordList) {
+                    let valid = true;
+                    let letterCounts = {};
+                    for (let i = 0; i < word.length; i++) {
+                    if (outcome[i] === 'g') { //Verify "g" letters in correct place
+                        if (word[i] !== legalWord[i]) {
+                        valid = false;
+                        break;
+                        }
+                    } else if (outcome[i] === 'y') { //Verify "y" letters in word, not at place
+                        if (word[i] === legalWord[i]) {
+                        valid = false;
+                        break;
+                        }
+                    } else if (outcome[i] === 'b') { //Verify "b" letters not at place
+                        if (word[i] === legalWord[i]) {
+                        valid = false;
+                        break;
+                        }
+                    }
+                    if (Object.hasOwn(letterCounts, legalWord[i])) {
+                        letterCounts[legalWord[i]]++;
+                    } else {
+                        letterCounts[legalWord[i]] = 1;
+                    }
+                    }
+
+                    if (valid) {
+                        for (let letterIndex in conditions) {
+                            if (typeof letterCounts[letterIndex] === 'undefined') {
+                                letterCounts[letterIndex] = 0;
+                            }
+                            if (letterCounts[letterIndex] < conditions[letterIndex].min || letterCounts[letterIndex] > conditions[letterIndex].max) {
+                                valid = false;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (valid) {
+                        binaryAnswers += nextPlaceValue;
+                        validWords.push(legalWord);
+                    }
+                    nextPlaceValue *= TWO;
+                }
+
+                return binaryAnswers;
+            }
+
+            async function bigIntToBase64(bigint) {
+                let hex = bigint.toString(16); // Convert to hex string
+                if (hex.length % 2 == 1)
+                    hex = "0" + hex;
+                const buffer = Buffer.from(hex, 'hex'); // Create a Buffer from hex
+                return buffer.toString('base64'); // Encode the buffer to base64
+            }
+
+            async function base64ToBigInt(base64) {
+                const buffer = Buffer.from(base64, 'base64');
+                let hex = buffer.toString('hex');
+                return BigInt('0x' + hex);
+            }
+
+            async function getWordsForBase64(base64) {
+                let binaryIndecies = BigInt(await base64ToBigInt(base64));
+                return await getWordsForBinary(binaryIndecies);
+            }
+
+            async function getWordsForBinary(binaryIndecies) {
+                const ZERO = BigInt(0);
+                const ONE = BigInt(1);
+                const TWO = BigInt(2);
+
+                let nextPlaceValue = ONE;
+
+                let wordsToReturn = [];
+                let index = 0;
+                while (nextPlaceValue <= binaryIndecies) {
+                    let andResult = nextPlaceValue & binaryIndecies;
+                    if (andResult > ZERO) {
+                    wordsToReturn.push(legalWordList[index]);
+                    }
+                    index++;
+                    nextPlaceValue *= TWO;
+                }
+
+                return wordsToReturn;
+            }
+        </script>
+        <script>
+            async function updatePossibleWordList() {
+                console.log("here!");
+                let result = undefined;
+                for (let knowledgeWord of knowledgeArray) {
+                    let word = "";
+                    let outcome = "";
+                    for (let knowledge of knowledgeWord) {
+                        word += knowledge.letter.toLowerCase();
+                        outcome += COLORS[knowledge.color].outcome;
+                    }
+                    result = await getNextResult(word, outcome, result);
+                }
+                let possibleWordList = await getWordsForBinary(result);
+                console.log(possibleWordList);
+                
+                let header = document.getElementsByClassName("possible-header")[0];
+                header.innerHTML = "Possible Words (" + possibleWordList.length + ")";
+
+                let list = document.getElementsByClassName("possible-list")[0];
+                list.innerHTML = "";
+                for (let word of possibleWordList) {
+                    let li = document.createElement("li");
+                    li.appendChild(document.createTextNode(word));
+                    list.appendChild(li);
+                }
+            }
+
+            async function getNextResult(word, outcome, priorResult) {
+                let result = resultsMap[word][outcome];
+                if (typeof priorResult !== 'undefined') {
+                    result &= priorResult;
+                }
+                return result;
+            }
+        </script>
+        <title>Bright Nebula Wordle Solver</title>
+    </head>
+    <body>
+        <div class="grid-container">
+            <div class="grid-item-input" style="background-color: white;">
+                <div class="board-container">
+                    <div class="board-row">
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                    </div>
+                    <div class="board-row">
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                    </div>
+                    <div class="board-row">
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                    </div>
+                    <div class="board-row">
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                    </div>
+                    <div class="board-row">
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                    </div>
+                    <div class="board-row">
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                        <div class="board-letter">
+                            <div class="board-letter-text"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="grid-item-possible" style="background-color: white;">
+                <h1 class="possible-header"></h1>
+                <ul class="possible-list">
+                    
+                </ul>
+            </div>
+            <div class="grid-item-keyboard" style="background-color: white;">
+                <div class="keyboard">
+                    <div class="keyboard-row">
+                        <button class="key letter-key">Q</button>
+                        <button class="key letter-key">W</button>
+                        <button class="key letter-key">E</button>
+                        <button class="key letter-key">R</button>
+                        <button class="key letter-key">T</button>
+                        <button class="key letter-key">Y</button>
+                        <button class="key letter-key">U</button>
+                        <button class="key letter-key">I</button>
+                        <button class="key letter-key">O</button>
+                        <button class="key letter-key">P</button>
+                    </div>
+                    <div class="keyboard-row">
+                        <span class="key-spacer"></span>
+                        <button class="key letter-key">A</button>
+                        <button class="key letter-key">S</button>
+                        <button class="key letter-key">D</button>
+                        <button class="key letter-key">F</button>
+                        <button class="key letter-key">G</button>
+                        <button class="key letter-key">H</button>
+                        <button class="key letter-key">J</button>
+                        <button class="key letter-key">K</button>
+                        <button class="key letter-key">L</button>
+                        <span class="key-spacer"></span>
+                    </div>
+                    <div class="keyboard-row">
+                        <button class="key enter-key">ENTER</button>
+                        <button class="key letter-key">Z</button>
+                        <button class="key letter-key">X</button>
+                        <button class="key letter-key">C</button>
+                        <button class="key letter-key">V</button>
+                        <button class="key letter-key">B</button>
+                        <button class="key letter-key">N</button>
+                        <button class="key letter-key">M</button>
+                        <button class="key backspace-key">⌫</button>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </body>
+</html>
